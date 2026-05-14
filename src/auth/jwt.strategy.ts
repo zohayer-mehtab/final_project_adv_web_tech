@@ -7,6 +7,7 @@ import {ConfigService} from '@nestjs/config';
 export type JwtPayload = { //Written for type safety, to ensure that the payload contains the expected properties when validating the JWT token.
     sub: number; // user ID
     email: string;
+    role: string;
 };
 
 @Injectable()
@@ -20,6 +21,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: JwtPayload) {
-        return { userId: payload.sub, email: payload.email };
+        return { userId: payload.sub, email: payload.email, role: payload.role };
     }
 }
