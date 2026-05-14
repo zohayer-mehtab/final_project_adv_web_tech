@@ -17,3 +17,10 @@
   - Implemented the `/auth/login` endpoint with password validation.
   - Successfully integrated `@nestjs/jwt` to generate and return JSON Web Tokens upon successful login.
 - **Bug Fix:** Import `UnauthorizedException` in `auth.controller.ts` to prevent a runtime crash on failed logins.
+
+### Commit 2
+* **Strict Login Validation:** Replaced the `Record<string, any>` anti-pattern with `LoginDto` to strictly enforce email and password validation using `class-validator`.
+* **JWT Strategy Implementation:** Created `jwt.strategy.ts` to securely extract, decode, and validate the Bearer token from incoming HTTP headers.
+* **Auth Guard Setup:** Built the `JwtAuthGuard` to act as a middleware for protected routes.
+* **Protected Profile Endpoint:** Successfully implemented Requirement #2 (`/auth/me`) by applying the `JwtAuthGuard`, which now returns the decoded user profile payload directly from the validated token.
+* **I'm making this commit at midnight(12:01 a.m., 15th of May)**
