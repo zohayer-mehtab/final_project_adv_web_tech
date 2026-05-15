@@ -1,6 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  Relation,
+} from 'typeorm';
 import { Role } from '../../role.enum';
-import { Optional } from '@nestjs/common';
+import { Product } from '../../products/entities/product.entity';
+import { Order } from '../../orders/entities/order.entity';
 
 @Entity()
 export class User {
@@ -25,5 +32,9 @@ export class User {
   @Column({ nullable: true })
   companyName?: string;
 
-  //@OneToMany(() => User, (user) => user.id)
+  @OneToMany(() => Product, (product) => product.vendor)
+  products: Relation<Product[]>;
+
+  @OneToMany(() => Order, (order) => order.buyer)
+  orders: Relation<Order[]>;
 }

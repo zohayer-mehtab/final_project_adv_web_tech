@@ -36,4 +36,16 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return await this.usersRepository.findOne({ where: { email } });
   }
+
+  async approveUser(id: number) {
+    await this.usersRepository.update(id, { isApproved: true });
+
+    return await this.usersRepository.findOne({ where: { id } });
+  }
+
+  async rejectUser(id: number) {
+    await this.usersRepository.update(id, { isApproved: false });
+
+    return await this.usersRepository.findOne({ where: { id } });
+  }
 }
