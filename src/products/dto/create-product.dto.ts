@@ -16,10 +16,10 @@ export class CreateProductDto {
   description: string;
 
   @IsNumber()
-  @IsPositive() // Price must be greater than 0
+  @IsPositive()
   price: number;
 
   @IsNumber()
-  @Min(0) // Stock can be 0, but not negative
+  @Min(0)
   stock: number;
 }

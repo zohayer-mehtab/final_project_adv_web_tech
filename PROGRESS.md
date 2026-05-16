@@ -36,13 +36,20 @@
 
 - **PROGRESS.md minor update**
 
-Here is an updated version of your commit message that accurately reflects all the recent bug fixes, architectural changes, and the new Admin features we just built:
-
----
-
 ## Commit 5:
 
 - **Admin Approval Workflows:** Implemented exact proposal-compliant action endpoints for Admins to approve or reject Vendors and Products (`PATCH /admin/users/:id/approve` and `PATCH /admin/products/:id/approve`). Hardcoded state updates (`isApproved: true/false`) securely within the Service layer.
 - **Route Restructuring & Alignment:** Refactored `UsersController` and `ProductsController` base route decorators to eliminate nested URL paths (e.g., fixing `404 Not Found` and double-nested paths). Routes now perfectly match the project proposal specifications (e.g., `/auth/register`, `/products`).
 - **Entity Relationships & Circular Dependencies Fixed:** Successfully linked `User`, `Product`, and `Order` entities using TypeORM's `@OneToMany` and `@ManyToOne` decorators. Implemented the `Relation<T>` wrapper to lazily load relations and prevent SWC compiler crashes.
 - **Vendor Product Creation & Validation:** Built the `ProductsService.create()` method to automatically map newly uploaded products to the `vendorId` extracted from the requesting user's JWT payload. Enforced strict data rules (`@IsPositive` for price, `@Min(0)` for stock) using `CreateProductDto`.
+
+## Commit 6:
+
+- **Made updates to PROGRESS.md. Accidentally added some AI-generated text. Noticed after making this commit. I'm writing this after commit commit no.6**
+
+## Commit 7: Public Catalog, Vendor Inventory Insights & Race-Condition Safe Order Processing
+
+- **Public Catalog Management:** Implemented buyer-facing endpoints `GET /products` and `GET /products/:id` to fetch approved, in-stock marketplace listings. Integrated strict `NotFoundException` error handling to block access to unapproved or non-existent items, while utilizing modern TypeORM 0.3.x object selection to protect sensitive vendor entity fields (passwords and emails).
+- **Vendor Inventory Isolation:** Created the authenticated `GET /products/my-products` endpoint, enforcing strict route-ordering in the controller to prevent path conflicts. This allows vendors to review their entire product portfolio, including both active (approved) and hidden (pending) items.
+- **Race-Condition Safe Orders:** Built out the core `POST /orders` logic for authenticated buyers. Replaced stateful JavaScript math with TypeORM's database-level `.decrement()` operation to guarantee atomic inventory updates, eliminating transaction concurrency issues (race conditions) during high-traffic checkouts.
+- **Relational Type Integrity:** Enforced `DeepPartial` casting across order relations (`Product` and `User`), allowing lightweight entity reference linking via IDs while maintaining strict compiler type-safety without unnecessary database overhead.

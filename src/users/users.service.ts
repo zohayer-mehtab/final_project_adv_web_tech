@@ -43,6 +43,7 @@ export class UsersService {
     return await this.usersRepository.findOne({ where: { id } });
   }
 
+  // This was not in the proposal, I added it for completeness.
   async rejectUser(id: number) {
     await this.usersRepository.update(id, { isApproved: false });
 

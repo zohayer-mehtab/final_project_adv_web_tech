@@ -41,4 +41,21 @@ export class ProductsController {
   rejectProduct(@Param('id') id: string) {
     return this.productsService.rejectProduct(+id);
   }
+
+  @Get('products')
+  findAllPublic() {
+    return this.productsService.findAllPublic();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.VENDOR)
+  @Get('products/my-products')
+  findVendorProducts(@Request() req) {
+    return this.productsService.findVendorProducts(req.user.userId);
+  }
+
+  @Get('products/:id')
+  findOne(@Param('id') id: string) {
+    return this.productsService.findOne(+id);
+  }
 }
