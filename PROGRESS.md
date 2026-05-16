@@ -47,9 +47,16 @@
 
 - **Made updates to PROGRESS.md. Accidentally added some AI-generated text. Noticed after making this commit. I'm writing this after commit commit no.6**
 
-## Commit 7: Public Catalog, Vendor Inventory Insights & Race-Condition Safe Order Processing
+## Commit 7:
 
 - **Public Catalog Management:** Implemented buyer-facing endpoints `GET /products` and `GET /products/:id` to fetch approved, in-stock marketplace listings. Integrated strict `NotFoundException` error handling to block access to unapproved or non-existent items, while utilizing modern TypeORM 0.3.x object selection to protect sensitive vendor entity fields (passwords and emails).
 - **Vendor Inventory Isolation:** Created the authenticated `GET /products/my-products` endpoint, enforcing strict route-ordering in the controller to prevent path conflicts. This allows vendors to review their entire product portfolio, including both active (approved) and hidden (pending) items.
 - **Race-Condition Safe Orders:** Built out the core `POST /orders` logic for authenticated buyers. Replaced stateful JavaScript math with TypeORM's database-level `.decrement()` operation to guarantee atomic inventory updates, eliminating transaction concurrency issues (race conditions) during high-traffic checkouts.
 - **Relational Type Integrity:** Enforced `DeepPartial` casting across order relations (`Product` and `User`), allowing lightweight entity reference linking via IDs while maintaining strict compiler type-safety without unnecessary database overhead.
+
+## Commit 8:
+
+- **Transactional Email System:** Integrated `@nestjs-modules/mailer` with Handlebars templates using the `forRootAsync` pattern and `ConfigService` for safe, race-condition-free startup.
+- **Fault-Tolerant Checkout:** Successfully wired automated emails (Order Confirmation to Buyer, Product Sold to Vendor) into the checkout flow. Implemented strategic rate-limiting delays and `try/catch` error handling to ensure third-party SMTP failures do not block or crash successful database transactions.
+- **Secure Order Management:** Built the authenticated `PATCH /orders/:id/status` endpoint allowing vendors to update delivery states (`Pending`, `Shipped`, `Delivered`).
+- **Strict Authorization Checks:** Enforced deep relational queries to verify product ownership, throwing a `ForbiddenException` to guarantee vendors can only modify orders containing their own inventory.
