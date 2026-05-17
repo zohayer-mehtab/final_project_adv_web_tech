@@ -8,12 +8,15 @@ import {
   Get,
   UseGuards,
   Request,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { use } from 'passport';
+import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -29,7 +32,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
+    const user = await this.authService.validateUser(
+      loginDto.email,
+      loginDto.password,
+    );
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -39,7 +45,13 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getProfile(@Request() req) {
-    return req.user;
+  async getUserProfile(@Request() req) {
+    return await this.authService.getUserProfile(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  async updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+    return await this.usersService.update(req.user.userId, updateUserDto);
   }
 }

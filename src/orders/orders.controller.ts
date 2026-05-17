@@ -7,6 +7,7 @@ import {
   Request,
   Patch,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -25,6 +26,20 @@ export class OrdersController {
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @Request() req) {
     return this.ordersService.create(createOrderDto, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.BUYER)
+  @Get('my-orders')
+  findAll(@Request() req) {
+    return this.ordersService.findAllForBuyer(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.BUYER)
+  @Delete(':id')
+  remove(@Param('id') id: string, @Request() req) {
+    return this.ordersService.remove(id, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

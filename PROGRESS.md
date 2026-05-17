@@ -60,3 +60,10 @@
 - **Fault-Tolerant Checkout:** Successfully wired automated emails (Order Confirmation to Buyer, Product Sold to Vendor) into the checkout flow. Implemented strategic rate-limiting delays and `try/catch` error handling to ensure third-party SMTP failures do not block or crash successful database transactions.
 - **Secure Order Management:** Built the authenticated `PATCH /orders/:id/status` endpoint allowing vendors to update delivery states (`Pending`, `Shipped`, `Delivered`).
 - **Strict Authorization Checks:** Enforced deep relational queries to verify product ownership, throwing a `ForbiddenException` to guarantee vendors can only modify orders containing their own inventory.
+
+## Commit 9: User Profile Retrieval & Secure Updates
+
+- **Profile Retrieval:** Implemented the protected `GET /auth/me` endpoint to securely fetch the currently authenticated user's profile data using JWT payload extraction.
+- **Profile Updates:** Built the `PATCH /auth/me` endpoint, allowing users to update their account details (username, company name, etc.) without requiring them to pass their ID in the URL.
+- **Secure Password Modification:** Integrated `bcrypt` hashing directly into the `UsersService.update` method to ensure that if a user changes their password during a profile update, the new password is encrypted before saving to the database.
+- **Routing & Type Fixes:** Resolved controller decorator routing issues (`@Patch`) and corrected JWT payload property mapping (`userId`).

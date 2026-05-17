@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/products/entities/product.entity';
 import { User } from 'src/users/entities/user.entity';
 import { MailService } from 'src/mail/mail.service';
+import { OrderStatus } from 'src/order-status.enum';
 
 @Injectable()
 export class OrdersService {
@@ -92,6 +93,44 @@ export class OrdersService {
     return savedOrder;
   }
 
+  async findAllForBuyer(buyerId: number): Promise<Order[]> {
+    return await this.ordersRepository.find({
+      where: { buyer: { id: buyerId } },
+      relations: { product: true },
+      order: { orderedAt: 'DESC' },
+    });
+  }
+
+  async remove(orderId: string, buyerId: number): Promise<void> {
+    const order = await this.ordersRepository.findOne({
+      where: { id: orderId },
+      relations: { buyer: true, product: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.buyer.id !== buyerId) {
+      throw new ForbiddenException('You can only remove your own orders!');
+    }
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException(
+        'You cannot cancel an order that is already shipped.',
+      );
+    }
+
+    //added for not to lose stock if order is cancelled
+    await this.productsRepository.increment(
+      { id: order.product.id },
+      'stock',
+      order.quantity,
+    );
+
+    await this.ordersRepository.remove(order);
+  }
+
   async updateOrderStatus(
     orderId: string,
     status: string,
@@ -102,7 +141,7 @@ export class OrdersService {
       where: { id: orderId },
       relations: {
         product: {
-          vendor: true, // We need the vendor ID to verify ownership!
+          vendor: true,
         },
       },
     });
@@ -111,15 +150,13 @@ export class OrdersService {
       throw new NotFoundException('Order not found');
     }
 
-    // 2. SECURITY CHECK: Does this vendor own the product in this order?
     if (order.product.vendor.id !== vendorId) {
       throw new ForbiddenException(
         'You can only update statuses for your own products!',
       );
     }
 
-    // 3. Update the status and save
-    order.status = status; // Assuming your entity column is named 'status'
+    order.status = status;
     return await this.ordersRepository.save(order);
   }
 }
