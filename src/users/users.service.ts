@@ -64,4 +64,16 @@ export class UsersService {
 
     return await this.usersRepository.findOne({ where: { id } });
   }
+
+  async findAllVendors(): Promise<User[]> {// Need to check this code later.
+    return await this.usersRepository.find({ where: { role: Role.VENDOR } });
+  }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
+      where: {resetToken : token},
+    });
+  }
+
+
 }

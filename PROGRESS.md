@@ -61,9 +61,17 @@
 - **Secure Order Management:** Built the authenticated `PATCH /orders/:id/status` endpoint allowing vendors to update delivery states (`Pending`, `Shipped`, `Delivered`).
 - **Strict Authorization Checks:** Enforced deep relational queries to verify product ownership, throwing a `ForbiddenException` to guarantee vendors can only modify orders containing their own inventory.
 
-## Commit 9: User Profile Retrieval & Secure Updates
+## Commit 9: 
 
 - **Profile Retrieval:** Implemented the protected `GET /auth/me` endpoint to securely fetch the currently authenticated user's profile data using JWT payload extraction.
 - **Profile Updates:** Built the `PATCH /auth/me` endpoint, allowing users to update their account details (username, company name, etc.) without requiring them to pass their ID in the URL.
 - **Secure Password Modification:** Integrated `bcrypt` hashing directly into the `UsersService.update` method to ensure that if a user changes their password during a profile update, the new password is encrypted before saving to the database.
 - **Routing & Type Fixes:** Resolved controller decorator routing issues (`@Patch`) and corrected JWT payload property mapping (`userId`).
+
+
+## Commit 10:
+
+* **Password Recovery:** Implemented secure two-step forgot/reset password flow using crypto-generated 6-digit tokens, 15-minute expirations, and automated Handlebars email delivery.
+* **Security Patch:** Resolved a bcrypt double-hashing bug in the password reset pipeline by delegating hash generation entirely to the `UsersService.update` lifecycle.
+* **Vendor Order Management:** Built the `GET /orders/vendor-orders` endpoint with deeply nested TypeORM relational queries, allowing vendors to securely view all inbound orders specifically for their inventory.
+* **Backend Finalization:** Concluded primary API development for the B2B Marketplace.

@@ -101,6 +101,14 @@ export class OrdersService {
     });
   }
 
+  async findAllForVendor(vendorId: number): Promise<Order[]> { //Not in the proposal but needs to be added for vendors to see their orders.
+    return await this.ordersRepository.find({
+      where: { product: { vendor: { id: vendorId } } },
+      relations: { buyer: true, product: true },
+      order: { orderedAt: 'DESC' },
+    });
+  }
+
   async remove(orderId: string, buyerId: number): Promise<void> {
     const order = await this.ordersRepository.findOne({
       where: { id: orderId },

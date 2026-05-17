@@ -22,4 +22,13 @@ export class MailService {
       context: orderData,
     });
   }
+
+  async sendPasswordResetEmail(userEmail: string, token: string) {
+    await this.mailerService.sendMail({
+      to: userEmail,
+      subject: 'Password Reset Code - B2B Marketplace',
+      template: './reset-password',
+      context: { token },
+    });
+  }
 }

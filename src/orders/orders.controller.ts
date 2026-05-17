@@ -36,6 +36,13 @@ export class OrdersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.VENDOR)
+  @Get('vendor-orders')
+  findAllForVendor(@Request() req) {
+    return this.ordersService.findAllForVendor(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.BUYER)
   @Delete(':id')
   remove(@Param('id') id: string, @Request() req) {

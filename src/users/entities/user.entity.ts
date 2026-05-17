@@ -32,6 +32,12 @@ export class User {
   @Column({ nullable: true })
   companyName?: string;
 
+  @Column({ nullable: true })
+  resetToken: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetTokenExpires: Date;
+
   @OneToMany(() => Product, (product) => product.vendor)
   products: Relation<Product[]>;
 
