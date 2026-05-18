@@ -1,6 +1,6 @@
 # Progress
 
-## Commit No. 1
+## Commit No. 10
 
 - **Project Initialization:** Successfully generated the NestJS application and set up the foundational directory structure.
 - **Environment Configuration:** Implemented `@nestjs/config` to securely manage environment variables (e.g., `DATABASE_URL`, `JWT_SECRET`) via the `.env` file.
@@ -75,3 +75,12 @@
 * **Security Patch:** Resolved a bcrypt double-hashing bug in the password reset pipeline by delegating hash generation entirely to the `UsersService.update` lifecycle.
 * **Vendor Order Management:** Built the `GET /orders/vendor-orders` endpoint with deeply nested TypeORM relational queries, allowing vendors to securely view all inbound orders specifically for their inventory.
 * **Backend Finalization:** Concluded primary API development for the B2B Marketplace.
+
+## Commit No. 11
+
+* **Monorepo Restructuring:** Merged the Next.js frontend and NestJS backend into a single repository, organizing them into dedicated `frontend/` and `backend/` directories to maintain isolated configurations while using a single root `.git` tracker.
+* **Global Design System:** Enforced light mode (`data-theme="light"`), implemented CSS-only floating labels using Tailwind `peer`, fixed browser autofill UI bugs, and standardized alert banners. Replaced native `<a>` tags with Next.js `<Link>`.
+* **Login Page (`/login`):** Styled to exact Figma hex codes, added a password visibility toggle, and refined input padding and container max-widths.
+* **Register Page (`/register`):** Restructured into a responsive split-screen design. Synchronized frontend state with backend `CreateUserDto` (added required `companyName`, integrated `role` selector).
+* **Forgot Password Page (`/forgot-password`):** Built UI to request a reset code, matching the new styling conventions.
+* **Reset Password Page (`/reset-password`):** Built token and new password submission UI. Added `.trim()` to the token payload to prevent validation failures from trailing spaces.
