@@ -27,11 +27,11 @@ export default function VendorOrdersPage() {
         
         try {
             await axios.patch(`http://localhost:3000/orders/${orderId}/status`, 
-                { status: newStatus }, // Send the exact string directly (e.g., "Shipped")
+                { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             
-            // Update the UI immediately
+            
             setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
         } catch (err: any) {
             console.error(err);
@@ -63,7 +63,7 @@ export default function VendorOrdersPage() {
                             </td>
                             <td className="p-3">
                                 <select 
-                                    value={o.status} // Now "Pending" matches value="Pending" perfectly
+                                    value={o.status}
                                     onChange={(e) => handleStatusUpdate(o.id, e.target.value)}
                                     className="border border-gray-300 rounded p-1 text-sm bg-white"
                                 >
