@@ -132,6 +132,24 @@ The final major commit (Commit 12) finalized the portal architectures, implement
 * **Refresh Token Rotation:** Upgrade the authentication flow to include HTTP-only refresh cookies for seamless, long-term user sessions without compromising JWT secret security.
 * **Analytics Dashboard:** Visual charts for vendors to track monthly revenue and order volume.
 
-```
+Here is the exact `MailModule` setup for your NestJS backend using `@nestjs-modules/mailer` and `nodemailer` to handle the password reset codes.
+
+### 1. Install Dependencies
+
+```bash
+npm install @nestjs-modules/mailer nodemailer
+npm install -D @types/nodemailer
 
 ```
+
+### 2. Environment Variables (`.env`)
+
+Add your SMTP credentials (you can use a service like SendGrid, Mailtrap, or Gmail App Passwords).
+
+```env
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USER=your_email@example.com
+MAIL_PASS=your_email_password
+MAIL_FROM=noreply@b2bmarketplace.com
+
