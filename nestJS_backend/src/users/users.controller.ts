@@ -32,6 +32,16 @@ export class UsersController {
   //   return this.usersService.findAll();
   // }
 
+
+  //added after getting errors! 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('admin/users')
+  findAllUsers() {
+    // Make sure your UsersService has a findAll() method!
+    return this.usersService.findAll(); 
+  }
+
   // @Get(':id')
   // findOne(@Param('id') id: string) {
   //   return this.usersService.findOne(+id);

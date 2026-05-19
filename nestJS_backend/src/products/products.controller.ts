@@ -20,6 +20,11 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 @Controller()
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
+  
+  @Get('products')
+  findAllPublic() {
+    return this.productsService.findAllPublic();
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.VENDOR)
@@ -42,10 +47,7 @@ export class ProductsController {
     return this.productsService.rejectProduct(+id);
   }
 
-  @Get('products')
-  findAllPublic() {
-    return this.productsService.findAllPublic();
-  }
+  
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.VENDOR)

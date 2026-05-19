@@ -74,6 +74,10 @@ export class UsersService {
       where: {resetToken : token},
     });
   }
+  
+  async findAll(): Promise<User[]> {
+    return await this.usersRepository.find();
+  } 
 
 
 }

@@ -84,3 +84,17 @@
 * **Register Page (`/register`):** Restructured into a responsive split-screen design. Synchronized frontend state with backend `CreateUserDto` (added required `companyName`, integrated `role` selector).
 * **Forgot Password Page (`/forgot-password`):** Built UI to request a reset code, matching the new styling conventions.
 * **Reset Password Page (`/reset-password`):** Built token and new password submission UI. Added `.trim()` to the token payload to prevent validation failures from trailing spaces.
+
+# Commit 12: Finalizing Portals, Role-Based Routing, and Core Bug Fixes
+
+## Overview
+Completed the final push for the B2B Marketplace submission. Implemented the Admin and Vendor portals using pure Tailwind CSS, established secure role-based routing, and resolved critical backend-to-frontend integration bugs.
+
+## Frontend Features Added
+* **Vendor Dashboard:** Built `/vendor/layout`, `/vendor/products`, `/vendor/products/new`, and `/vendor/orders`. Vendors can now manage inventory and update order statuses.
+* **Admin Dashboard:** Built `/admin/layout`, `/admin/users`, and `/admin/products`. Admins can now approve/reject pending vendors and products.
+* **Smart Routing:** Updated the `Login` page and header `Profile` buttons to dynamically redirect users to their specific dashboards (Admin, Vendor, or Buyer) based on their JWT token role.
+* **UI/UX Polish:** Stripped out conflicting DaisyUI classes and standardized all portal layouts with pure Tailwind CSS. Added dynamic total price calculations (`quantity * price`) on the Vendor orders table.
+
+## Known Limitations 
+* **Product Images:** Image uploading functionality for products was omitted for this submission deadline.

@@ -58,10 +58,14 @@ export default function RegisterPage() {
             <div className="w-full lg:w-[591px] flex flex-col relative px-8 py-10 md:px-16 flex-shrink-0">
                 
                 <div className="flex items-center gap-2 mb-10 lg:mb-0 lg:absolute lg:top-8 lg:left-8">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 2V22M6 10A6 6 0 0 1 6 22" stroke="#367AFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="text-[20px] font-semibold tracking-[-0.04em] text-[#232323]">b2b Marketplace</span>
+                    <Link href="/" className="p-6 flex items-center hover:opacity-80 transition-opacity">
+                        <span className="text-[24px] font-bold tracking-[-0.04em] text-[#232323] flex items-center gap-1.5">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 2V22M6 10A6 6 0 0 1 6 22" stroke="#367AFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            b2b.<span className="text-[#367AFF] font-medium">marketplace</span>
+                        </span>
+                    </Link>
                 </div>
 
                

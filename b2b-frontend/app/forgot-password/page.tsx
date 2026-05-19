@@ -19,7 +19,6 @@ export default function ForgotPasswordPage() {
             setSuccessMessage("A 6-digit reset code has been sent to your email!");
             setError("");
             
-            // Redirect to the reset-password page after 2 seconds
             setTimeout(() => router.push("/reset-password"), 2000);
             
         } catch (error) {
@@ -35,10 +34,14 @@ export default function ForgotPasswordPage() {
         <div data-theme="light" className="min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center font-sans text-[#232323] relative">
             
             <div className="absolute top-8 left-8 md:top-8 md:left-8 flex items-center gap-3">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 2V22M6 10A6 6 0 0 1 6 22" stroke="#367AFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                <span className="text-[20px] font-semibold tracking-[-0.04em] text-[#232323]">b2b Marketplace</span>
+                <Link href="/" className="p-6 flex items-center hover:opacity-80 transition-opacity">
+                        <span className="text-[24px] font-bold tracking-[-0.04em] text-[#232323] flex items-center gap-1.5">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 2V22M6 10A6 6 0 0 1 6 22" stroke="#367AFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            b2b.<span className="text-[#367AFF] font-medium">marketplace</span>
+                        </span>
+                    </Link>
             </div>
 
             <div className="w-full max-w-[400px] px-4">
