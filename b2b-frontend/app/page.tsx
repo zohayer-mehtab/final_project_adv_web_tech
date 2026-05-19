@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Added useRouter import
+import { useRouter } from "next/navigation"; 
 
 export default function MarketplaceHome() {
-    const router = useRouter(); // Initialize router
+    const router = useRouter(); 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
