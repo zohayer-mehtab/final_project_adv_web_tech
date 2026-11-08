@@ -49,6 +49,6 @@ Schema synchronization is disabled in `AppModule`. Three explicit migrations pro
 
 ## Verification and trade-offs
 
-HTTP authorization tests cover admin registration rejection, buyer and vendor registration, anonymous and non-admin account creation, profile allowlisting, response serialization, and rate limiting. The e2e suite runs the real Nest app with a temporary database and a mocked mail transport. The backend build, TypeScript compilation, unit suite, e2e suite, frontend TypeScript check, and frontend build passed in the final workstream checks. See [the remediation report](REMEDIATION_REPORT.md) for exact commands and results.
+HTTP authorization tests cover admin registration rejection, buyer and vendor registration, anonymous and non-admin account creation, profile allowlisting, response serialization, and rate limiting. The e2e suite runs the real Nest app with a temporary database and a mocked mail transport. The backend build, TypeScript compilation, unit suite, e2e suite, frontend TypeScript check, and frontend build passed in the final workstream checks. The commands are listed in the root README.
 
 This is a portfolio implementation with explicit limits: no live SMTP verification, process-local rate limiting, browser local-storage JWTs, no refresh or general revocation flow, no automated initial-admin bootstrap, and a nontransactional order-cancellation path. These limits should be resolved or reassessed before claiming production readiness.
