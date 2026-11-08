@@ -2,7 +2,7 @@
 
 A buyer, vendor, and administrator marketplace built with a Next.js frontend and a NestJS API. Buyers browse approved products and place orders. Vendors register for approval, create products, and manage fulfillment. Administrators approve vendor accounts and product listings.
 
-This repository is a portfolio case study, not a deployed service. See [the architecture case study](docs/CASE_STUDY.md) and [the remediation report](docs/REMEDIATION_REPORT.md) for the security decisions, test evidence, and limits.
+This repository is a portfolio case study, not a deployed service. See [the architecture case study](docs/CASE_STUDY.md) for the security decisions, test evidence, and limits.
 
 ## Stack and architecture
 
