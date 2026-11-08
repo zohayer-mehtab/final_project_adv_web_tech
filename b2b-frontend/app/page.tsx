@@ -4,9 +4,18 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; 
 
+type MarketplaceProduct = {
+    id?: number;
+    _id?: string;
+    name: string;
+    description?: string;
+    price: number | string;
+    imageUrl?: string;
+};
+
 export default function MarketplaceHome() {
     const router = useRouter(); 
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] = useState<MarketplaceProduct[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
