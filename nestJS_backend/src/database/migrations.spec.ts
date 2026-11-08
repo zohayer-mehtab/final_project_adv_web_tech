@@ -8,6 +8,9 @@ import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { Role } from '../role.enum';
 import * as bcrypt from 'bcryptjs';
+import { Product } from '../products/entities/product.entity';
+import { Order } from '../orders/entities/order.entity';
+import { OrdersService } from '../orders/orders.service';
 
 config();
 
@@ -77,5 +80,24 @@ describe('PostgreSQL migrations and email integrity', () => {
     expect(await bcrypt.compare('new-pass-123', (await users.findAuthUserById(account.id))!.password)).toBe(true);
     await users.setResetToken(account.id, hash, new Date(Date.now() - 1));
     expect(await users.consumeResetToken(hash, 'another-pass-123')).toBe(false);
+  });
+
+  it('keeps the last unit from being sold twice under concurrent orders', async () => {
+    const users = new UsersService(dataSource.getRepository(User));
+    const vendor = await users.register({ username: 'stockvendor', email: 'stockvendor@example.test', password: 'strong-pass-123', role: Role.VENDOR });
+    const buyer = await users.register({ username: 'stockbuyer', email: 'stockbuyer@example.test', password: 'strong-pass-123', role: Role.BUYER });
+    const product = await dataSource.getRepository(Product).save(dataSource.getRepository(Product).create({
+      name: 'Last unit', description: 'Description', price: 10, stock: 1, isApproved: true, vendor: { id: vendor.id } as User,
+    }));
+    const mail = { sendProductSoldNotification: jest.fn(), sendOrderConfirmationEmail: jest.fn() };
+    const orders = new OrdersService(dataSource.getRepository(Order), dataSource.getRepository(Product), dataSource.getRepository(User), mail as any);
+    const results = await Promise.allSettled([
+      orders.create({ productId: product.id, quantity: 1 }, buyer.id),
+      orders.create({ productId: product.id, quantity: 1 }, buyer.id),
+    ]);
+    expect(results.filter(({ status }) => status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter(({ status }) => status === 'rejected')).toHaveLength(1);
+    expect((await dataSource.getRepository(Product).findOneByOrFail({ id: product.id })).stock).toBe(0);
+    expect(await dataSource.getRepository(Order).count()).toBe(1);
   });
 });
