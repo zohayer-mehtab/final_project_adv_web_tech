@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { Role } from '../role.enum';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { toUserResponse, UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -15,11 +16,12 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async findOne(id: number): Promise<User | null> {
-    return await this.usersRepository.findOne({ where: { id } });
+  async findOne(id: number): Promise<UserResponseDto | null> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    return user ? toUserResponse(user) : null;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserResponseDto | null> {
     const { username, email, companyName, password } = updateUserDto;
     const changes: Partial<User> = {};
     if (username !== undefined) changes.username = username;
@@ -31,7 +33,7 @@ export class UsersService {
     return this.findOne(id);
   }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const existingUser = await this.usersRepository.findOne({
       where: { email: createUserDto.email },
     });
@@ -49,9 +51,9 @@ export class UsersService {
       password: hashedPassword,
       isApproved,
     });
-    return await this.usersRepository.save(newUser);
+    return toUserResponse(await this.usersRepository.save(newUser));
   }
-  async register(registerDto: RegisterDto): Promise<User> {
+  async register(registerDto: RegisterDto): Promise<UserResponseDto> {
     if (registerDto.role !== Role.BUYER && registerDto.role !== Role.VENDOR) {
       throw new ConflictException('Invalid registration role');
     }
@@ -70,18 +72,18 @@ export class UsersService {
   async approveUser(id: number) {
     await this.usersRepository.update(id, { isApproved: true });
 
-    return await this.usersRepository.findOne({ where: { id } });
+    return this.findOne(id);
   }
 
   // This was not in the proposal, I added it for completeness.
   async rejectUser(id: number) {
     await this.usersRepository.update(id, { isApproved: false });
 
-    return await this.usersRepository.findOne({ where: { id } });
+    return this.findOne(id);
   }
 
-  async findAllVendors(): Promise<User[]> {// Need to check this code later.
-    return await this.usersRepository.find({ where: { role: Role.VENDOR } });
+  async findAllVendors(): Promise<UserResponseDto[]> {
+    return (await this.usersRepository.find({ where: { role: Role.VENDOR } })).map(toUserResponse);
   }
 
   async findByResetToken(token: string): Promise<User | null> {
@@ -90,8 +92,8 @@ export class UsersService {
     });
   }
   
-  async findAll(): Promise<User[]> {
-    return await this.usersRepository.find();
+  async findAll(): Promise<UserResponseDto[]> {
+    return (await this.usersRepository.find()).map(toUserResponse);
   } 
 
 

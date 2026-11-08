@@ -81,4 +81,19 @@ describe('registration and authorization HTTP routes', () => {
     expect(users[0].role).toBe(Role.BUYER);
     expect(users[0].username).toBe('changed');
   });
+
+  it('serializes registration, profiles, and admin lists without credentials', async () => {
+    const registration = await request(app.getHttpServer()).post('/auth/register').send(payload(Role.BUYER)).expect(201);
+    expect(registration.body).not.toHaveProperty('password');
+    users[0].resetToken = 'private-code';
+    users[0].resetTokenExpires = new Date();
+    const profile = await request(app.getHttpServer()).get('/auth/me').set('Authorization', token(Role.BUYER)).expect(200);
+    expect(profile.body).not.toHaveProperty('password');
+    expect(profile.body).not.toHaveProperty('resetToken');
+    const updated = await request(app.getHttpServer()).patch('/auth/me').set('Authorization', token(Role.BUYER)).send({ username: 'updated' }).expect(200);
+    expect(updated.body).not.toHaveProperty('resetToken');
+    const listing = await request(app.getHttpServer()).get('/admin/users').set('Authorization', token(Role.ADMIN)).expect(200);
+    expect(listing.body[0]).not.toHaveProperty('password');
+    expect(listing.body[0]).not.toHaveProperty('resetToken');
+  });
 });

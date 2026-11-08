@@ -5,7 +5,6 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +12,8 @@ import { Product } from 'src/products/entities/product.entity';
 import { User } from 'src/users/entities/user.entity';
 import { MailService } from 'src/mail/mail.service';
 import { OrderStatus } from 'src/order-status.enum';
+import { toOrderResponse } from './dto/order-response.dto';
+import { OrderResponseDto } from './dto/order-response.dto';
 
 @Injectable()
 export class OrdersService {
@@ -29,7 +30,7 @@ export class OrdersService {
   async create(
     createOrderDto: CreateOrderDto,
     buyerId: number,
-  ): Promise<Order> {
+  ): Promise<OrderResponseDto> {
     const product = await this.productsRepository.findOne({
       where: { id: createOrderDto.productId, isApproved: true },
       relations: { vendor: true },
@@ -41,6 +42,9 @@ export class OrdersService {
 
     if (!product) {
       throw new NotFoundException('Product not found or not available');
+    }
+    if (!buyer) {
+      throw new NotFoundException('Buyer not found');
     }
 
     if (product.stock < createOrderDto.quantity) {
@@ -90,23 +94,25 @@ export class OrdersService {
         error.message,
       );
     }
-    return savedOrder;
+    return toOrderResponse(savedOrder);
   }
 
-  async findAllForBuyer(buyerId: number): Promise<Order[]> {
-    return await this.ordersRepository.find({
+  async findAllForBuyer(buyerId: number): Promise<OrderResponseDto[]> {
+    const orders = await this.ordersRepository.find({
       where: { buyer: { id: buyerId } },
       relations: { product: true },
       order: { orderedAt: 'DESC' },
     });
+    return orders.map(toOrderResponse);
   }
 
-  async findAllForVendor(vendorId: number): Promise<Order[]> { //Not in the proposal but needs to be added for vendors to see their orders.
-    return await this.ordersRepository.find({
+  async findAllForVendor(vendorId: number): Promise<OrderResponseDto[]> {
+    const orders = await this.ordersRepository.find({
       where: { product: { vendor: { id: vendorId } } },
       relations: { buyer: true, product: true },
       order: { orderedAt: 'DESC' },
     });
+    return orders.map(toOrderResponse);
   }
 
   async remove(orderId: string, buyerId: number): Promise<void> {
@@ -141,9 +147,9 @@ export class OrdersService {
 
   async updateOrderStatus(
     orderId: string,
-    status: string,
+    status: OrderStatus,
     vendorId: number,
-  ): Promise<Order> {
+  ): Promise<OrderResponseDto> {
     // 1. Fetch the order AND deep-load the product & vendor relations
     const order = await this.ordersRepository.findOne({
       where: { id: orderId },
@@ -165,6 +171,6 @@ export class OrdersService {
     }
 
     order.status = status;
-    return await this.ordersRepository.save(order);
+    return toOrderResponse(await this.ordersRepository.save(order));
   }
 }
