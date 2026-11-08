@@ -43,7 +43,11 @@ export class BaselineSchema1762600000000 implements MigrationInterface {
     )`);
   }
 
-  async down(): Promise<void> {
-    throw new Error('Baseline rollback is intentionally disabled to protect existing marketplace data');
+  down(): Promise<void> {
+    return Promise.reject(
+      new Error(
+        'Baseline rollback is intentionally disabled to protect existing marketplace data',
+      ),
+    );
   }
 }

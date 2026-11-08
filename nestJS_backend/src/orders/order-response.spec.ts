@@ -20,21 +20,50 @@ describe('vendor order HTTP response', () => {
       controllers: [OrdersController],
       providers: [
         OrdersService,
-        { provide: getRepositoryToken(Order), useValue: { find: async () => [{
-          id: 'order-1', quantity: 2, status: 'pending', orderedAt: new Date(),
-          buyer: { id: 5, username: 'buyer', email: 'buyer@example.test', password: 'hash', resetToken: 'private-code' },
-          product: { id: 7, name: 'Item', description: 'Description', price: 12, vendor: { password: 'vendor-hash' } },
-        }] } },
+        {
+          provide: getRepositoryToken(Order),
+          useValue: {
+            find: async () => [
+              {
+                id: 'order-1',
+                quantity: 2,
+                status: 'pending',
+                orderedAt: new Date(),
+                buyer: {
+                  id: 5,
+                  username: 'buyer',
+                  email: 'buyer@example.test',
+                  password: 'hash',
+                  resetToken: 'private-code',
+                },
+                product: {
+                  id: 7,
+                  name: 'Item',
+                  description: 'Description',
+                  price: 12,
+                  vendor: { password: 'vendor-hash' },
+                },
+              },
+            ],
+          },
+        },
         { provide: getRepositoryToken(Product), useValue: {} },
         { provide: getRepositoryToken(User), useValue: {} },
         { provide: MailService, useValue: {} },
       ],
     })
-      .overrideGuard(JwtAuthGuard).useValue({ canActivate: (context) => {
-        context.switchToHttp().getRequest().user = { userId: 10, role: Role.VENDOR };
-        return true;
-      } })
-      .overrideGuard(RolesGuard).useValue({ canActivate: () => true })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: (context) => {
+          context.switchToHttp().getRequest().user = {
+            userId: 10,
+            role: Role.VENDOR,
+          };
+          return true;
+        },
+      })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
       .compile();
     app = module.createNestApplication();
     await app.init();
@@ -43,7 +72,9 @@ describe('vendor order HTTP response', () => {
   afterAll(async () => app.close());
 
   it('returns only the intended buyer fields', async () => {
-    const response = await request(app.getHttpServer()).get('/orders/vendor-orders').expect(200);
+    const response = await request(app.getHttpServer())
+      .get('/orders/vendor-orders')
+      .expect(200);
     expect(response.body[0].buyer).toEqual({ id: 5, username: 'buyer' });
     expect(response.body[0].product).not.toHaveProperty('vendor');
   });

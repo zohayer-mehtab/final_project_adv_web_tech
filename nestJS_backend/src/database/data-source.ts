@@ -14,6 +14,10 @@ export default new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
   entities: [User, Product, Order],
-  migrations: [BaselineSchema1762600000000, UniqueUserEmail1762600000001, UniqueResetToken1762600000002],
+  migrations: [
+    BaselineSchema1762600000000,
+    UniqueUserEmail1762600000001,
+    UniqueResetToken1762600000002,
+  ],
   synchronize: false,
 });
