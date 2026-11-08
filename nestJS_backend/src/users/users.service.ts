@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcryptjs';
-import { CreateUserDto } from './create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { RegisterDto } from '../auth/dto/register.dto';
 import { Role } from '../role.enum';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -19,11 +20,13 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
-
-    await this.usersRepository.update(id, updateUserDto);
+    const { username, email, companyName, password } = updateUserDto;
+    const changes: Partial<User> = {};
+    if (username !== undefined) changes.username = username;
+    if (email !== undefined) changes.email = email;
+    if (companyName !== undefined) changes.companyName = companyName;
+    if (password !== undefined) changes.password = await bcrypt.hash(password, 10);
+    await this.usersRepository.update(id, changes);
 
     return this.findOne(id);
   }
@@ -47,6 +50,18 @@ export class UsersService {
       isApproved,
     });
     return await this.usersRepository.save(newUser);
+  }
+  async register(registerDto: RegisterDto): Promise<User> {
+    if (registerDto.role !== Role.BUYER && registerDto.role !== Role.VENDOR) {
+      throw new ConflictException('Invalid registration role');
+    }
+    return this.create({
+      username: registerDto.username,
+      email: registerDto.email,
+      password: registerDto.password,
+      role: registerDto.role,
+      companyName: registerDto.companyName,
+    });
   }
   async findByEmail(email: string): Promise<User | null> {
     return await this.usersRepository.findOne({ where: { email } });
