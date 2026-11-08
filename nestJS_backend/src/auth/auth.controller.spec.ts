@@ -1,18 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 
 describe('AuthController', () => {
-  let controller: AuthController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-    }).compile();
-
-    controller = module.get<AuthController>(AuthController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('rejects incorrect login credentials without issuing a token', async () => {
+    const auth = { validateUser: jest.fn().mockResolvedValue(null), login: jest.fn() };
+    const controller = new AuthController(auth as any, {} as any);
+    await expect(controller.login({ email: 'buyer@example.test', password: 'wrong' })).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(auth.login).not.toHaveBeenCalled();
   });
 });

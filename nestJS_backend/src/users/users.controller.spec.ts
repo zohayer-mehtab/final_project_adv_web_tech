@@ -1,20 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { Role } from '../role.enum';
 
 describe('UsersController', () => {
-  let controller: UsersController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [UsersController],
-      providers: [UsersService],
-    }).compile();
-
-    controller = module.get<UsersController>(UsersController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('passes administrative account creation and approvals to the user service', async () => {
+    const users = { create: jest.fn().mockResolvedValue({ id: 1 }), approveUser: jest.fn().mockResolvedValue({ id: 2 }) };
+    const controller = new UsersController(users as any);
+    const dto = { username: 'admin', email: 'admin@example.test', password: 'strong-pass-123', role: Role.ADMIN };
+    await expect(controller.create(dto)).resolves.toEqual({ id: 1 });
+    await expect(controller.approveVendor(2)).resolves.toEqual({ id: 2 });
+    expect(users.create).toHaveBeenCalledWith(dto);
+    expect(users.approveUser).toHaveBeenCalledWith(2);
   });
 });
