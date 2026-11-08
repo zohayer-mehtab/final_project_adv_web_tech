@@ -12,10 +12,9 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { use } from 'passport';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 
 @Controller('auth')
@@ -26,8 +25,8 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async register(@Body() registerDto: RegisterDto) {
+    return this.usersService.register(registerDto);
   }
   @HttpCode(HttpStatus.OK)
   @Post('login')
