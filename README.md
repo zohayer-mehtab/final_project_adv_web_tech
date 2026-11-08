@@ -74,7 +74,7 @@ erDiagram
   }
 ```
 
-The migration adds a unique index on `lower(email)`. Credential fields in the entity are storage fields; user and order API services return explicit safe projections instead of serializing those fields. Order creation reserves stock and inserts the order in one transaction.
+The migrations add unique indexes on `lower(email)` and non-null reset-code hashes. Credential fields in the entity are storage fields; user and order API services return explicit safe projections instead of serializing those fields. Order creation reserves stock and inserts the order in one transaction.
 
 ## Password reset
 
@@ -98,7 +98,7 @@ Prerequisites: Node.js 20.9 or newer, npm, and PostgreSQL with permission to cre
    PORT=3000
    ```
 
-3. Review the target schema and existing email duplicates before migration. Run `npm run migration:show`, then deliberately run `npm run migration:run` in `nestJS_backend`. The application never runs migrations or schema synchronization at startup. The baseline migration creates tables only when absent; the second migration adds the case-insensitive email index. A pre-existing schema with unexpected columns or duplicate emails needs manual review before migration.
+3. Review the target schema and existing email or reset-code duplicates before migration. Run `npm run migration:show`, then deliberately run `npm run migration:run` in `nestJS_backend`. The application never runs migrations or schema synchronization at startup. The baseline migration creates tables only when absent; the second adds the case-insensitive email index and the third makes non-null reset-code hashes unique. A pre-existing schema with unexpected columns or duplicates needs manual review before migration.
 4. Start the API with `npm run start:dev` from `nestJS_backend`.
 5. In `b2b-frontend`, run `npm ci` and `npm run dev`. The frontend normally uses port 3001 when the API occupies 3000.
 

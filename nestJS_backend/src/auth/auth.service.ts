@@ -47,10 +47,27 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     if (!user) return RESET_RESPONSE;
 
-    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
-    const hash = this.hashResetCode(code);
     const expires = new Date(Date.now() + 15 * 60_000);
-    await this.usersService.setResetToken(user.id, hash, expires);
+    let code: string | undefined;
+    let hash: string | undefined;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidate = randomInt(0, 1_000_000).toString().padStart(6, '0');
+      const candidateHash = this.hashResetCode(candidate);
+      try {
+        await this.usersService.setResetToken(user.id, candidateHash, expires);
+        code = candidate;
+        hash = candidateHash;
+        break;
+      } catch (error) {
+        if (this.isUniqueViolation(error)) continue;
+        this.logger.error('Password reset token storage failed');
+        return RESET_RESPONSE;
+      }
+    }
+    if (!code || !hash) {
+      this.logger.error('Password reset code allocation failed');
+      return RESET_RESPONSE;
+    }
 
     try {
       await this.mailService.sendPasswordResetEmail(user.email, code);
@@ -72,5 +89,10 @@ export class AuthService {
     );
     if (!updated) throw new BadRequestException('Invalid or expired reset code');
     return { message: 'Password has been reset successfully' };
+  }
+
+  private isUniqueViolation(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'driverError' in error &&
+      (error as { driverError?: { code?: string } }).driverError?.code === '23505';
   }
 }

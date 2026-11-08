@@ -9,15 +9,17 @@ describe('password reset lifecycle', () => {
   let deliveredCode: string;
   let deliveryFails: boolean;
   let service: AuthService;
+  let setResetTokenMock: jest.Mock;
 
   beforeEach(() => {
     storedHash = null;
     expires = null;
     deliveredCode = '';
     deliveryFails = false;
+    setResetTokenMock = jest.fn(async (_id: number, hash: string, deadline: Date) => { storedHash = hash; expires = deadline; });
     const users = {
       findByEmail: jest.fn(async (email: string) => email === account.email ? account : null),
-      setResetToken: jest.fn(async (_id: number, hash: string, deadline: Date) => { storedHash = hash; expires = deadline; }),
+      setResetToken: setResetTokenMock,
       clearResetToken: jest.fn(async (_id: number, hash: string) => { if (storedHash === hash) storedHash = null; }),
       consumeResetToken: jest.fn(async (hash: string) => {
         if (storedHash !== hash || !expires || expires <= new Date()) return false;
@@ -59,5 +61,12 @@ describe('password reset lifecycle', () => {
     expect(failed).toEqual(unknown);
     expect(storedHash).toBeNull();
     expect(Logger.prototype.error).toHaveBeenCalledWith('Password reset email delivery failed');
+  });
+
+  it('retries a colliding code before sending mail', async () => {
+    setResetTokenMock.mockRejectedValueOnce({ driverError: { code: '23505' } });
+    await service.forgotPassword(account.email);
+    expect(setResetTokenMock).toHaveBeenCalledTimes(2);
+    expect(deliveredCode).toMatch(/^\d{6}$/);
   });
 });

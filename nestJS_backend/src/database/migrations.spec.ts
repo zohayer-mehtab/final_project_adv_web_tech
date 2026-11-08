@@ -48,6 +48,7 @@ describe('PostgreSQL migrations and email integrity', () => {
     expect(migrations.map(({ name }) => name)).toEqual([
       'BaselineSchema1762600000000',
       'UniqueUserEmail1762600000001',
+      'UniqueResetToken1762600000002',
     ]);
   });
 
@@ -80,6 +81,16 @@ describe('PostgreSQL migrations and email integrity', () => {
     expect(await bcrypt.compare('new-pass-123', (await users.findAuthUserById(account.id))!.password)).toBe(true);
     await users.setResetToken(account.id, hash, new Date(Date.now() - 1));
     expect(await users.consumeResetToken(hash, 'another-pass-123')).toBe(false);
+  });
+
+  it('prevents one reset hash from belonging to two accounts', async () => {
+    const users = new UsersService(dataSource.getRepository(User));
+    const first = await users.register({ username: 'resetone', email: 'resetone@example.test', password: 'strong-pass-123', role: Role.BUYER });
+    const second = await users.register({ username: 'resettwo', email: 'resettwo@example.test', password: 'strong-pass-123', role: Role.BUYER });
+    const hash = 'c'.repeat(64);
+    await users.setResetToken(first.id, hash, new Date(Date.now() + 60_000));
+    await expect(users.setResetToken(second.id, hash, new Date(Date.now() + 60_000)))
+      .rejects.toMatchObject({ driverError: { code: '23505' } });
   });
 
   it('keeps the last unit from being sold twice under concurrent orders', async () => {
