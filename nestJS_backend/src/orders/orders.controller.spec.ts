@@ -1,20 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersController } from './orders.controller';
-import { OrdersService } from './orders.service';
+import { OrderStatus } from '../order-status.enum';
 
 describe('OrdersController', () => {
-  let controller: OrdersController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [OrdersController],
-      providers: [OrdersService],
-    }).compile();
-
-    controller = module.get<OrdersController>(OrdersController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('passes authenticated identities to create and status operations', async () => {
+    const orders = { create: jest.fn().mockResolvedValue({ id: 'order' }), updateOrderStatus: jest.fn().mockResolvedValue({ status: OrderStatus.SHIPPED }) };
+    const controller = new OrdersController(orders as any);
+    await controller.create({ productId: 4, quantity: 2 }, { user: { userId: 7 } });
+    await controller.updateStatus('order-id', { status: OrderStatus.SHIPPED }, { user: { userId: 9 } });
+    expect(orders.create).toHaveBeenCalledWith({ productId: 4, quantity: 2 }, 7);
+    expect(orders.updateOrderStatus).toHaveBeenCalledWith('order-id', OrderStatus.SHIPPED, 9);
   });
 });
