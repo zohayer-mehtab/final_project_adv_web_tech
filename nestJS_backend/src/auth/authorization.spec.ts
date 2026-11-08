@@ -61,6 +61,7 @@ describe('registration and authorization HTTP routes', () => {
 
   it('rejects ADMIN registration and preserves BUYER and VENDOR registration', async () => {
     await request(app.getHttpServer()).post('/auth/register').send(payload(Role.ADMIN)).expect(400);
+    await request(app.getHttpServer()).post('/auth/register').send({ ...payload(Role.BUYER), isApproved: true }).expect(400);
     await request(app.getHttpServer()).post('/auth/register').send(payload(Role.BUYER)).expect(201);
     await request(app.getHttpServer()).post('/auth/register').send(payload(Role.VENDOR)).expect(201);
     expect(users.map(({ role, isApproved }) => ({ role, isApproved }))).toEqual([
@@ -75,6 +76,7 @@ describe('registration and authorization HTTP routes', () => {
     await request(app.getHttpServer()).post('/').send(payload(Role.ADMIN)).expect(401);
     await request(app.getHttpServer()).post('/').set('Authorization', token(Role.BUYER)).send(payload(Role.ADMIN)).expect(403);
     await request(app.getHttpServer()).post('/').set('Authorization', token(Role.ADMIN, 2)).send({ ...payload(Role.ADMIN), email: 'new-admin@example.test', username: 'newadmin' }).expect(201);
+    await request(app.getHttpServer()).patch('/admin/users/not-an-id/approve').set('Authorization', token(Role.ADMIN, 2)).expect(400);
   });
 
   it('allows profile fields but rejects role and approval changes', async () => {

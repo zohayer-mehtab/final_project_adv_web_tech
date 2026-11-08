@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -62,14 +63,14 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch('admin/users/:id/approve')
-  approveVendor(@Param('id') id: string) {
-    return this.usersService.approveUser(+id);
+  approveVendor(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.approveUser(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch('admin/users/:id/reject')
-  rejectVendor(@Param('id') id: string) {
-    return this.usersService.rejectUser(+id);
+  rejectVendor(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.rejectUser(id);
   }
 }

@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -36,15 +37,15 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch('admin/products/:id/approve')
-  approveProduct(@Param('id') id: string) {
-    return this.productsService.approveProduct(+id);
+  approveProduct(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.approveProduct(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch('admin/products/:id/reject')
-  rejectProduct(@Param('id') id: string) {
-    return this.productsService.rejectProduct(+id);
+  rejectProduct(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.rejectProduct(id);
   }
 
   
@@ -57,7 +58,7 @@ export class ProductsController {
   }
 
   @Get('products/:id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.findOne(id);
   }
 }
