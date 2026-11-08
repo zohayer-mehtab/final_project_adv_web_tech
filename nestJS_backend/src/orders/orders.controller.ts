@@ -17,6 +17,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/role.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import type { AuthenticatedRequest } from '../common/authenticated-request';
 
 @Controller('orders')
 export class OrdersController {
@@ -25,28 +26,34 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.BUYER)
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto, @Request() req) {
+  create(
+    @Body() createOrderDto: CreateOrderDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.ordersService.create(createOrderDto, req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.BUYER)
   @Get('my-orders')
-  findAll(@Request() req) {
+  findAll(@Request() req: AuthenticatedRequest) {
     return this.ordersService.findAllForBuyer(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.VENDOR)
   @Get('vendor-orders')
-  findAllForVendor(@Request() req) {
+  findAllForVendor(@Request() req: AuthenticatedRequest) {
     return this.ordersService.findAllForVendor(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.BUYER)
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
     return this.ordersService.remove(id, req.user.userId);
   }
 
@@ -56,7 +63,7 @@ export class OrdersController {
   updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.ordersService.updateOrderStatus(
       id,

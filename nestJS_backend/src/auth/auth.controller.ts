@@ -19,6 +19,7 @@ import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { EndpointRateLimitGuard } from './endpoint-rate-limit.guard';
+import type { AuthenticatedRequest } from '../common/authenticated-request';
 
 @Controller('auth')
 export class AuthController {
@@ -48,13 +49,16 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getUserProfile(@Request() req) {
+  async getUserProfile(@Request() req: AuthenticatedRequest) {
     return await this.authService.getUserProfile(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
-  async updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+  async updateProfile(
+    @Request() req: AuthenticatedRequest,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     return await this.usersService.update(req.user.userId, updateUserDto);
   }
 

@@ -23,6 +23,7 @@ The configured PostgreSQL schema was inspected read only before writing migratio
 | Order stock checks could race | Moved conditional stock reservation and order insertion into one transaction. |
 | Parameter and numeric validation was incomplete | Added integer and UUID parameter pipes, positive IDs, integer stock, and two-decimal price validation. |
 | Placeholder tests did not exercise behavior | Replaced them with service and controller behavior checks; added HTTP, database, concurrency, and e2e tests. |
+| Backend lint reported 400 findings | Formatted backend TypeScript, typed request and mail boundaries, and scoped dynamic-test lint rules to spec files. Production source retains type-aware lint rules. |
 | Frontend reset wording contradicted neutral API response; TypeScript build failed | Updated the message and repaired page types without changing the UI flow. |
 
 ## Files changed
@@ -34,7 +35,7 @@ The source changes are concentrated in:
 - `nestJS_backend/src/orders/`: controller, service, order response DTO, entity type metadata, and tests.
 - `nestJS_backend/src/products/`: controller, product DTO, entity type metadata, and tests.
 - `nestJS_backend/src/database/`: TypeORM data source, three migrations, and isolated PostgreSQL tests.
-- `nestJS_backend/src/app.module.ts`, `nestJS_backend/package.json`, `nestJS_backend/package-lock.json`, `nestJS_backend/test/`, and `nestJS_backend/README.md`.
+- `nestJS_backend/src/app.module.ts`, `nestJS_backend/src/common/`, `nestJS_backend/eslint.config.mjs`, `nestJS_backend/package.json`, `nestJS_backend/package-lock.json`, `nestJS_backend/test/`, and `nestJS_backend/README.md`.
 - `b2b-frontend/app/page.tsx`, `app/products/[id]/page.tsx`, `app/register/page.tsx`, `app/forgot-password/page.tsx`, and `app/reset-password/page.tsx`.
 - Root `README.md`, this report, and `docs/CASE_STUDY.md`.
 
@@ -50,7 +51,7 @@ The source changes are concentrated in:
 | `npm run migration:show` in `nestJS_backend` | Passed; all three migrations pending on the configured database. No migration run there. |
 | `npx tsc --noEmit --pretty false` in `b2b-frontend` | Passed after typing fixes. |
 | `npm run build` in `b2b-frontend` | Passed after typing fixes; 16 pages generated. |
-| `npm run lint` in `nestJS_backend` | Failed: 400 findings (327 errors, 73 warnings) across existing and new files, primarily formatting and unsafe-type rules. The script no longer mutates source. |
+| `npm run lint` in `nestJS_backend` | Passed after focused source typing, formatting, and spec-file lint rules. The script does not mutate source. |
 
 The final integration branch will be rerun through the relevant build and test commands before merge. An earlier frontend build failed on TypeScript errors; that result was resolved by the frontend compatibility commit. An initial sandboxed build also hit a Next.js worker-spawn restriction; the permitted retry reached TypeScript and later passed.
 
@@ -62,7 +63,6 @@ The local `nestJS_backend/.env` is ignored by Git and has never appeared in trac
 
 - The configured application database has not had the pending migrations applied. Fresh migration behavior was verified in temporary PostgreSQL databases; production migration planning remains an operator task.
 - Real SMTP delivery was not tested. The mail transport was mocked in e2e tests, while failure propagation and neutral responses were tested.
-- Backend lint remains red. A focused cleanup can address formatting and typed mock conventions without changing the security behavior.
 - Rate limiting is per process and per IP; it is not distributed. JWTs have a one-day lifetime with no refresh or general revocation mechanism.
 - The reset response is content-neutral, but SMTP timing can still differ between known and unknown addresses. A durable asynchronous mail queue would improve this.
 - The initial administrator needs controlled operator provisioning. Order cancellation is not yet transactional.

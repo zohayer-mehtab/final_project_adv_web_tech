@@ -6,16 +6,20 @@ export function toOrderResponse(order: Order) {
     quantity: order.quantity,
     status: order.status,
     orderedAt: order.orderedAt,
-    product: order.product ? {
-      id: order.product.id,
-      name: order.product.name,
-      description: order.product.description,
-      price: order.product.price,
-    } : undefined,
-    buyer: order.buyer ? {
-      id: order.buyer.id,
-      username: order.buyer.username,
-    } : undefined,
+    product: order.product
+      ? {
+          id: order.product.id,
+          name: order.product.name,
+          description: order.product.description,
+          price: order.product.price,
+        }
+      : undefined,
+    buyer: order.buyer
+      ? {
+          id: order.buyer.id,
+          username: order.buyer.username,
+        }
+      : undefined,
   };
 }
 

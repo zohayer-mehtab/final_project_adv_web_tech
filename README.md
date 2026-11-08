@@ -125,7 +125,7 @@ npx tsc --noEmit
 npm run build
 ```
 
-The backend ESLint check currently reports existing formatting and unsafe-type findings across the repository. See the remediation report for the exact command and result; a green lint result is not claimed.
+`npm run lint` now passes in `nestJS_backend`. Test files use focused lint overrides for dynamic Jest and Supertest values; production source retains the type-aware rules.
 
 ## Known limits
 

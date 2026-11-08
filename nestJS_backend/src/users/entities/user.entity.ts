@@ -1,9 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import type { Relation } from 'typeorm';
 import { Role } from '../../role.enum';
 import { Product } from '../../products/entities/product.entity';

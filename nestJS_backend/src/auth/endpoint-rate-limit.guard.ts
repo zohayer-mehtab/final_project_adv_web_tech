@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable, HttpStatus } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  HttpException,
+  Injectable,
+  HttpStatus,
+} from '@nestjs/common';
 
 type Window = { count: number; expiresAt: number };
 
@@ -7,7 +13,7 @@ export class EndpointRateLimitGuard implements CanActivate {
   private readonly windows = new Map<string, Window>();
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<{ ip: string }>();
     const route = context.getHandler().name;
     const limits: Record<string, [number, number]> = {
       login: [5, 60_000],
@@ -28,12 +34,17 @@ export class EndpointRateLimitGuard implements CanActivate {
         if (value.expiresAt <= now) this.windows.delete(windowKey);
       }
       if (this.windows.size > 10_000) {
-        const oldestKey = this.windows.keys().next().value;
-        if (oldestKey) this.windows.delete(oldestKey);
+        for (const oldestKey of this.windows.keys()) {
+          this.windows.delete(oldestKey);
+          break;
+        }
       }
     }
     if (window.count > limit) {
-      throw new HttpException('Too many requests. Please try again later.', HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException(
+        'Too many requests. Please try again later.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
     return true;
   }

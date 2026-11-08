@@ -7,7 +7,9 @@ import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
 import { Role } from '../role.enum';
 
-const RESET_RESPONSE = { message: 'If you have an account, check your email for reset instructions.' };
+const RESET_RESPONSE = {
+  message: 'If you have an account, check your email for reset instructions.',
+};
 
 @Injectable()
 export class AuthService {
@@ -29,7 +31,11 @@ export class AuthService {
 
   login(user: { id: number; email: string; role: Role }) {
     return {
-      access_token: this.jwtService.sign({ email: user.email, sub: user.id, role: user.role }),
+      access_token: this.jwtService.sign({
+        email: user.email,
+        sub: user.id,
+        role: user.role,
+      }),
     };
   }
 
@@ -38,7 +44,10 @@ export class AuthService {
   }
 
   private hashResetCode(code: string): string {
-    return createHmac('sha256', this.configService.getOrThrow<string>('JWT_SECRET'))
+    return createHmac(
+      'sha256',
+      this.configService.getOrThrow<string>('JWT_SECRET'),
+    )
       .update(code)
       .digest('hex');
   }
@@ -87,12 +96,18 @@ export class AuthService {
       this.hashResetCode(code),
       newPassword,
     );
-    if (!updated) throw new BadRequestException('Invalid or expired reset code');
+    if (!updated)
+      throw new BadRequestException('Invalid or expired reset code');
     return { message: 'Password has been reset successfully' };
   }
 
   private isUniqueViolation(error: unknown): boolean {
-    return typeof error === 'object' && error !== null && 'driverError' in error &&
-      (error as { driverError?: { code?: string } }).driverError?.code === '23505';
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'driverError' in error &&
+      (error as { driverError?: { code?: string } }).driverError?.code ===
+        '23505'
+    );
   }
 }

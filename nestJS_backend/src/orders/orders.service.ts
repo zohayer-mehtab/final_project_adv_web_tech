@@ -33,31 +33,42 @@ export class OrdersService {
     createOrderDto: CreateOrderDto,
     buyerId: number,
   ): Promise<OrderResponseDto> {
-    const { product, buyer, savedOrder } = await this.ordersRepository.manager.transaction(async (manager) => {
-      const product = await manager.getRepository(Product).findOne({
-        where: { id: createOrderDto.productId, isApproved: true },
-        relations: { vendor: true },
+    const { product, buyer, savedOrder } =
+      await this.ordersRepository.manager.transaction(async (manager) => {
+        const product = await manager.getRepository(Product).findOne({
+          where: { id: createOrderDto.productId, isApproved: true },
+          relations: { vendor: true },
+        });
+        if (!product)
+          throw new NotFoundException('Product not found or not available');
+        const buyer = await manager
+          .getRepository(User)
+          .findOne({ where: { id: buyerId } });
+        if (!buyer) throw new NotFoundException('Buyer not found');
+
+        const stockUpdate = await manager
+          .getRepository(Product)
+          .createQueryBuilder()
+          .update(Product)
+          .set({ stock: () => '"stock" - :quantity' })
+          .where('"id" = :id', { id: product.id })
+          .andWhere('"isApproved" = true')
+          .andWhere('"stock" >= :quantity', {
+            quantity: createOrderDto.quantity,
+          })
+          .execute();
+        if (stockUpdate.affected !== 1)
+          throw new BadRequestException('Insufficient stock available');
+
+        const savedOrder = await manager.getRepository(Order).save(
+          manager.getRepository(Order).create({
+            product: { id: product.id } as DeepPartial<Product>,
+            buyer: { id: buyerId } as DeepPartial<User>,
+            quantity: createOrderDto.quantity,
+          }),
+        );
+        return { product, buyer, savedOrder };
       });
-      if (!product) throw new NotFoundException('Product not found or not available');
-      const buyer = await manager.getRepository(User).findOne({ where: { id: buyerId } });
-      if (!buyer) throw new NotFoundException('Buyer not found');
-
-      const stockUpdate = await manager.getRepository(Product).createQueryBuilder()
-        .update(Product)
-        .set({ stock: () => '"stock" - :quantity' })
-        .where('"id" = :id', { id: product.id })
-        .andWhere('"isApproved" = true')
-        .andWhere('"stock" >= :quantity', { quantity: createOrderDto.quantity })
-        .execute();
-      if (stockUpdate.affected !== 1) throw new BadRequestException('Insufficient stock available');
-
-      const savedOrder = await manager.getRepository(Order).save(manager.getRepository(Order).create({
-        product: { id: product.id } as DeepPartial<Product>,
-        buyer: { id: buyerId } as DeepPartial<User>,
-        quantity: createOrderDto.quantity,
-      }));
-      return { product, buyer, savedOrder };
-    });
 
     const totalPrice = product.price * savedOrder.quantity;
 

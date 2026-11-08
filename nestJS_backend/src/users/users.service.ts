@@ -25,13 +25,17 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserResponseDto | null> {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto | null> {
     const { username, email, companyName, password } = updateUserDto;
     const changes: Partial<User> = {};
     if (username !== undefined) changes.username = username;
     if (email !== undefined) changes.email = email.trim().toLowerCase();
     if (companyName !== undefined) changes.companyName = companyName;
-    if (password !== undefined) changes.password = await bcrypt.hash(password, 10);
+    if (password !== undefined)
+      changes.password = await bcrypt.hash(password, 10);
     try {
       await this.usersRepository.update(id, changes);
     } catch (error) {
@@ -69,8 +73,13 @@ export class UsersService {
   }
 
   private handleUniqueViolation(error: unknown): never {
-    if (typeof error === 'object' && error !== null && 'driverError' in error &&
-      (error as { driverError?: { code?: string } }).driverError?.code === '23505') {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'driverError' in error &&
+      (error as { driverError?: { code?: string } }).driverError?.code ===
+        '23505'
+    ) {
       throw new ConflictException('Account identifier already exists');
     }
     throw error;
@@ -88,7 +97,9 @@ export class UsersService {
     });
   }
   async findByEmail(email: string): Promise<User | null> {
-    return await this.usersRepository.findOne({ where: { email: email.trim().toLowerCase() } });
+    return await this.usersRepository.findOne({
+      where: { email: email.trim().toLowerCase() },
+    });
   }
 
   async approveUser(id: number) {
@@ -105,15 +116,23 @@ export class UsersService {
   }
 
   async findAllVendors(): Promise<UserResponseDto[]> {
-    return (await this.usersRepository.find({ where: { role: Role.VENDOR } })).map(toUserResponse);
+    return (
+      await this.usersRepository.find({ where: { role: Role.VENDOR } })
+    ).map(toUserResponse);
   }
 
   async setResetToken(id: number, hash: string, expires: Date): Promise<void> {
-    await this.usersRepository.update(id, { resetToken: hash, resetTokenExpires: expires });
+    await this.usersRepository.update(id, {
+      resetToken: hash,
+      resetTokenExpires: expires,
+    });
   }
 
   async clearResetToken(id: number, hash: string): Promise<void> {
-    await this.usersRepository.update({ id, resetToken: hash }, { resetToken: null, resetTokenExpires: null });
+    await this.usersRepository.update(
+      { id, resetToken: hash },
+      { resetToken: null, resetTokenExpires: null },
+    );
   }
 
   async consumeResetToken(hash: string, newPassword: string): Promise<boolean> {
@@ -124,10 +143,8 @@ export class UsersService {
     );
     return result.affected === 1;
   }
-  
+
   async findAll(): Promise<UserResponseDto[]> {
     return (await this.usersRepository.find()).map(toUserResponse);
-  } 
-
-
+  }
 }

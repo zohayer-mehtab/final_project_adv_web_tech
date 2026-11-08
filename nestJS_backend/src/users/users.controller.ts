@@ -5,13 +5,11 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from 'src/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -35,14 +33,13 @@ export class UsersController {
   //   return this.usersService.findAll();
   // }
 
-
-  //added after getting errors! 
+  //added after getting errors!
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('admin/users')
   findAllUsers() {
     // Make sure your UsersService has a findAll() method!
-    return this.usersService.findAll(); 
+    return this.usersService.findAll();
   }
 
   // @Get(':id')
