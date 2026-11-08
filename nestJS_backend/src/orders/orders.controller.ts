@@ -8,6 +8,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -45,7 +46,7 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.BUYER)
   @Delete(':id')
-  remove(@Param('id') id: string, @Request() req) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     return this.ordersService.remove(id, req.user.userId);
   }
 
@@ -53,7 +54,7 @@ export class OrdersController {
   @Roles(Role.VENDOR)
   @Patch(':id/status')
   updateStatus(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
     @Request() req,
   ) {
