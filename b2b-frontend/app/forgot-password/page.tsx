@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
         try {
             await axios.post("http://localhost:3000/auth/forgot-password", { email });
             
-            setSuccessMessage("If an account exists, reset instructions will be sent.");
+            setSuccessMessage("If you have an account, check your email for reset instructions.");
             setError("");
             
             setTimeout(() => router.push("/reset-password"), 2000);

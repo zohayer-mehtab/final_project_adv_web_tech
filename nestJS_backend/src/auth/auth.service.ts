@@ -7,7 +7,7 @@ import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
 import { Role } from '../role.enum';
 
-const RESET_RESPONSE = { message: 'If an account exists, reset instructions will be sent.' };
+const RESET_RESPONSE = { message: 'If you have an account, check your email for reset instructions.' };
 
 @Injectable()
 export class AuthService {

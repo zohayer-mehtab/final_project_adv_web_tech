@@ -37,7 +37,7 @@ describe('password reset lifecycle', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('stores a hash and consumes a valid code once', async () => {
-    await expect(service.forgotPassword(account.email)).resolves.toEqual({ message: 'If an account exists, reset instructions will be sent.' });
+    await expect(service.forgotPassword(account.email)).resolves.toEqual({ message: 'If you have an account, check your email for reset instructions.' });
     expect(deliveredCode).toMatch(/^\d{6}$/);
     expect(storedHash).toMatch(/^[a-f0-9]{64}$/);
     expect(storedHash).not.toBe(deliveredCode);
