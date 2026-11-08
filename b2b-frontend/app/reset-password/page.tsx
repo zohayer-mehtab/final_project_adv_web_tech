@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -14,12 +14,12 @@ export default function ResetPasswordPage() {
     const [successMessage, setSuccessMessage] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({ ...prevData, [name]: value }));
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         const payload = {
@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
             setError("");
             setTimeout(() => router.push("/login"), 2000);
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
+            if (axios.isAxiosError(error) && error.response?.data?.message) {
                 const errMsg = Array.isArray(error.response.data.message) 
                     ? error.response.data.message[0] 
                     : error.response.data.message;

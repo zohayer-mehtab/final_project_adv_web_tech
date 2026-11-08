@@ -4,7 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function ProductDetailsPage({ params }: { params: any }) {
+export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = React.use(params);
     const router = useRouter();
 
@@ -117,7 +117,6 @@ export default function ProductDetailsPage({ params }: { params: any }) {
     return (
         <div data-theme="light" className="min-h-screen bg-[#FFFFFF] font-sans pb-12">
             
-            {/* Header Navbar */}
             <header className="flex items-center justify-between px-8 py-4 border-b border-[#E5E7EB] bg-[#FFFFFF]">
                 <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -139,7 +138,6 @@ export default function ProductDetailsPage({ params }: { params: any }) {
                 </button>
             </header>
 
-            {/* Main Content Area */}
             <div className="max-w-[1000px] mx-auto px-6 pt-8">
                 
                 <Link href="/" className="text-[#6C6C6C] hover:text-[#367AFF] flex items-center gap-2 mb-6 text-[16px] font-medium transition-colors w-fit">
@@ -149,17 +147,14 @@ export default function ProductDetailsPage({ params }: { params: any }) {
                     Back to Marketplace
                 </Link>
 
-                {/* Main Product Card */}
                 <div className="bg-[#FFFFFF] rounded-[12px] border border-[#E5E7EB] overflow-hidden flex flex-col md:flex-row">
                     
-                    {/* Left Side: Product Image */}
                     <div className="w-full md:w-1/2 bg-[#F4F5F7] min-h-[300px] flex items-center justify-center transition-colors hover:bg-[#EDF2FA]">
                          <span className="text-[32px] font-semibold text-[#232323] tracking-tight">
                              No Image
                          </span>
                     </div>
 
-                    {/* Right Side: Product Details */}
                     <div className="w-full md:w-1/2 p-8 flex flex-col">
                         <div className="inline-flex h-[36px] items-center px-4 rounded-full border border-[#367AFF] text-[#367AFF] bg-[#F0F5FF] text-[14px] font-medium mb-4 w-fit">
                             {product.vendor?.companyName || product.vendor?.username || "Verified Vendor"}
@@ -190,7 +185,6 @@ export default function ProductDetailsPage({ params }: { params: any }) {
                             {orderError && <div className="bg-[#FEF2F2] text-[#EF4444] rounded-[10px] py-3 px-4 mb-4 text-[15px] font-medium border border-[#FCA5A5]">{orderError}</div>}
                             {orderSuccess && <div className="bg-[#ECFDF5] text-[#059669] rounded-[10px] py-3 px-4 mb-4 text-[15px] font-medium border border-[#A7F3D0]">{orderSuccess}</div>}
 
-                            {/* Ordering Controls */}
                             <div className="flex gap-4 items-center">
                                 <input 
                                     type="number" 
