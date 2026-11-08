@@ -14,6 +14,7 @@ The configured PostgreSQL schema was inspected read only before writing migratio
 | Self-service update inherited role and other privileged fields | Replaced inheritance with an explicit profile DTO and service update allowlist. |
 | User and order entities exposed credential fields through responses | Added user and order projections in services; tested serialized HTTP bodies. |
 | Reset codes were stored in plaintext and reusable logic was not atomic | Stored keyed hashes, enforced expiry, consumed with a conditional database update, and tested invalid, expired, and reused codes. |
+| Six digit reset codes could collide across accounts | Added a partial unique index on stored hashes and collision retry before mail delivery. |
 | Reset requests revealed account existence and swallowed mail failures | Unified public responses, cleared codes after delivery failure, and logged generic failures. |
 | Login and reset endpoints had no request limits | Added process-local per-IP fixed-window limits. |
 | JWT authorization trusted a possibly stale role claim | Resolved current role and vendor approval from the database on guarded requests. |
@@ -32,7 +33,7 @@ The source changes are concentrated in:
 - `nestJS_backend/src/users/`: controller, service, entity, profile and response DTOs, and tests.
 - `nestJS_backend/src/orders/`: controller, service, order response DTO, entity type metadata, and tests.
 - `nestJS_backend/src/products/`: controller, product DTO, entity type metadata, and tests.
-- `nestJS_backend/src/database/`: TypeORM data source, two migrations, and isolated PostgreSQL tests.
+- `nestJS_backend/src/database/`: TypeORM data source, three migrations, and isolated PostgreSQL tests.
 - `nestJS_backend/src/app.module.ts`, `nestJS_backend/package.json`, `nestJS_backend/package-lock.json`, `nestJS_backend/test/`, and `nestJS_backend/README.md`.
 - `b2b-frontend/app/page.tsx`, `app/products/[id]/page.tsx`, `app/register/page.tsx`, `app/forgot-password/page.tsx`, and `app/reset-password/page.tsx`.
 - Root `README.md`, this report, and `docs/CASE_STUDY.md`.
@@ -43,10 +44,10 @@ The source changes are concentrated in:
 | --- | --- |
 | `npm run build` in `nestJS_backend` | Passed; SWC compiled the backend. |
 | `npx tsc --noEmit` in `nestJS_backend` | Passed. |
-| `npm test -- --runInBand` in `nestJS_backend` | Passed: 14 suites, 28 tests including order concurrency in the final integration check. |
+| `npm test -- --runInBand` in `nestJS_backend` | Passed: 14 suites, 30 tests including order concurrency and reset-code collision coverage in the final integration check. |
 | `npm run test:e2e -- --runInBand` in `nestJS_backend` | Passed: 1 suite, 1 real-app flow on a temporary database. |
 | `npm test -- --runInBand migrations.spec.ts` in `nestJS_backend` | Passed: migration, uniqueness, concurrent registration, reset consumption, and stock concurrency in a temporary database. |
-| `npm run migration:show` in `nestJS_backend` | Passed; both migrations pending on the configured database. No migration run there. |
+| `npm run migration:show` in `nestJS_backend` | Passed; all three migrations pending on the configured database. No migration run there. |
 | `npx tsc --noEmit --pretty false` in `b2b-frontend` | Passed after typing fixes. |
 | `npm run build` in `b2b-frontend` | Passed after typing fixes; 16 pages generated. |
 | `npm run lint` in `nestJS_backend` | Failed: 400 findings (327 errors, 73 warnings) across existing and new files, primarily formatting and unsafe-type rules. The script no longer mutates source. |
