@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +19,10 @@ export class UsersService {
   async findOne(id: number): Promise<UserResponseDto | null> {
     const user = await this.usersRepository.findOne({ where: { id } });
     return user ? toUserResponse(user) : null;
+  }
+
+  async findAuthUserById(id: number): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<UserResponseDto | null> {
@@ -86,10 +90,21 @@ export class UsersService {
     return (await this.usersRepository.find({ where: { role: Role.VENDOR } })).map(toUserResponse);
   }
 
-  async findByResetToken(token: string): Promise<User | null> {
-    return await this.usersRepository.findOne({
-      where: {resetToken : token},
-    });
+  async setResetToken(id: number, hash: string, expires: Date): Promise<void> {
+    await this.usersRepository.update(id, { resetToken: hash, resetTokenExpires: expires });
+  }
+
+  async clearResetToken(id: number, hash: string): Promise<void> {
+    await this.usersRepository.update({ id, resetToken: hash }, { resetToken: null, resetTokenExpires: null });
+  }
+
+  async consumeResetToken(hash: string, newPassword: string): Promise<boolean> {
+    const password = await bcrypt.hash(newPassword, 10);
+    const result = await this.usersRepository.update(
+      { resetToken: hash, resetTokenExpires: MoreThan(new Date()) },
+      { password, resetToken: null, resetTokenExpires: null },
+    );
+    return result.affected === 1;
   }
   
   async findAll(): Promise<UserResponseDto[]> {

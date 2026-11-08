@@ -16,6 +16,9 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { EndpointRateLimitGuard } from './endpoint-rate-limit.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -30,6 +33,7 @@ export class AuthController {
   }
   @HttpCode(HttpStatus.OK)
   @Post('login')
+  @UseGuards(EndpointRateLimitGuard)
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(
       loginDto.email,
@@ -55,15 +59,16 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(EndpointRateLimitGuard)
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.forgotPassword(body.email);
   }
 
   @Post('reset-password')
-  async resetPassword(
-    @Body('token') token: string,
-    @Body('newPassword') newPassword: string,
-  ) {
-    return this.authService.resetPassword(token, newPassword);
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(EndpointRateLimitGuard)
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(body.token, body.newPassword);
   }
 }
