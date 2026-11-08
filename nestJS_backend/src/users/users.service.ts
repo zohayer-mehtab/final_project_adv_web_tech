@@ -29,17 +29,22 @@ export class UsersService {
     const { username, email, companyName, password } = updateUserDto;
     const changes: Partial<User> = {};
     if (username !== undefined) changes.username = username;
-    if (email !== undefined) changes.email = email;
+    if (email !== undefined) changes.email = email.trim().toLowerCase();
     if (companyName !== undefined) changes.companyName = companyName;
     if (password !== undefined) changes.password = await bcrypt.hash(password, 10);
-    await this.usersRepository.update(id, changes);
+    try {
+      await this.usersRepository.update(id, changes);
+    } catch (error) {
+      this.handleUniqueViolation(error);
+    }
 
     return this.findOne(id);
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    const email = createUserDto.email.trim().toLowerCase();
     const existingUser = await this.usersRepository.findOne({
-      where: { email: createUserDto.email },
+      where: { email },
     });
 
     if (existingUser) {
@@ -52,10 +57,23 @@ export class UsersService {
 
     const newUser = this.usersRepository.create({
       ...createUserDto,
+      email,
       password: hashedPassword,
       isApproved,
     });
-    return toUserResponse(await this.usersRepository.save(newUser));
+    try {
+      return toUserResponse(await this.usersRepository.save(newUser));
+    } catch (error) {
+      this.handleUniqueViolation(error);
+    }
+  }
+
+  private handleUniqueViolation(error: unknown): never {
+    if (typeof error === 'object' && error !== null && 'driverError' in error &&
+      (error as { driverError?: { code?: string } }).driverError?.code === '23505') {
+      throw new ConflictException('Account identifier already exists');
+    }
+    throw error;
   }
   async register(registerDto: RegisterDto): Promise<UserResponseDto> {
     if (registerDto.role !== Role.BUYER && registerDto.role !== Role.VENDOR) {
@@ -70,7 +88,7 @@ export class UsersService {
     });
   }
   async findByEmail(email: string): Promise<User | null> {
-    return await this.usersRepository.findOne({ where: { email } });
+    return await this.usersRepository.findOne({ where: { email: email.trim().toLowerCase() } });
   }
 
   async approveUser(id: number) {
