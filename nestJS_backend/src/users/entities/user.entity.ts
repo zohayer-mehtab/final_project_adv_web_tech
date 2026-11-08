@@ -32,7 +32,7 @@ export class User {
   @Column({ nullable: true })
   companyName?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   resetToken: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
