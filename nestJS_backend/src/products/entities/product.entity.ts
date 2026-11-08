@@ -4,8 +4,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  Relation,
 } from 'typeorm';
+import type { Relation } from 'typeorm';
 
 @Entity('products')
 export class Product {

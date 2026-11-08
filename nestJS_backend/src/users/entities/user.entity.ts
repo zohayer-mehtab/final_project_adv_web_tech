@@ -3,8 +3,8 @@ import {
   Column,
   PrimaryGeneratedColumn,
   OneToMany,
-  Relation,
 } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Role } from '../../role.enum';
 import { Product } from '../../products/entities/product.entity';
 import { Order } from '../../orders/entities/order.entity';
