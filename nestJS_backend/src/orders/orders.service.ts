@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
@@ -17,6 +18,7 @@ import { OrderResponseDto } from './dto/order-response.dto';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
   constructor(
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
@@ -31,43 +33,31 @@ export class OrdersService {
     createOrderDto: CreateOrderDto,
     buyerId: number,
   ): Promise<OrderResponseDto> {
-    const product = await this.productsRepository.findOne({
-      where: { id: createOrderDto.productId, isApproved: true },
-      relations: { vendor: true },
+    const { product, buyer, savedOrder } = await this.ordersRepository.manager.transaction(async (manager) => {
+      const product = await manager.getRepository(Product).findOne({
+        where: { id: createOrderDto.productId, isApproved: true },
+        relations: { vendor: true },
+      });
+      if (!product) throw new NotFoundException('Product not found or not available');
+      const buyer = await manager.getRepository(User).findOne({ where: { id: buyerId } });
+      if (!buyer) throw new NotFoundException('Buyer not found');
+
+      const stockUpdate = await manager.getRepository(Product).createQueryBuilder()
+        .update(Product)
+        .set({ stock: () => '"stock" - :quantity' })
+        .where('"id" = :id', { id: product.id })
+        .andWhere('"isApproved" = true')
+        .andWhere('"stock" >= :quantity', { quantity: createOrderDto.quantity })
+        .execute();
+      if (stockUpdate.affected !== 1) throw new BadRequestException('Insufficient stock available');
+
+      const savedOrder = await manager.getRepository(Order).save(manager.getRepository(Order).create({
+        product: { id: product.id } as DeepPartial<Product>,
+        buyer: { id: buyerId } as DeepPartial<User>,
+        quantity: createOrderDto.quantity,
+      }));
+      return { product, buyer, savedOrder };
     });
-
-    const buyer = await this.usersRepository.findOne({
-      where: { id: buyerId },
-    });
-
-    if (!product) {
-      throw new NotFoundException('Product not found or not available');
-    }
-    if (!buyer) {
-      throw new NotFoundException('Buyer not found');
-    }
-
-    if (product.stock < createOrderDto.quantity) {
-      throw new BadRequestException(
-        `Insufficient stock available, Only ${product.stock} left`,
-      );
-    }
-
-    //product.stock -= createOrderDto.quantity;
-    //await this.productsRepository.save(product); //bad code
-    await this.productsRepository.decrement(
-      { id: product.id },
-      'stock',
-      createOrderDto.quantity,
-    ); //This code is better because does the operation sequentially.
-
-    const newOrder = this.ordersRepository.create({
-      product: { id: createOrderDto.productId } as DeepPartial<Product>,
-      buyer: { id: buyerId } as DeepPartial<User>,
-      quantity: createOrderDto.quantity,
-    });
-
-    const savedOrder = await this.ordersRepository.save(newOrder);
 
     const totalPrice = product.price * savedOrder.quantity;
 
@@ -78,8 +68,6 @@ export class OrdersService {
         buyerEmail: buyer.email,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-
       await this.mailService.sendOrderConfirmationEmail(buyer.email, {
         orderId: savedOrder.id,
         productName: product.name,
@@ -87,12 +75,8 @@ export class OrdersService {
         totalPrice: totalPrice,
         date: new Date().toLocaleDateString(),
       });
-    } catch (error) {
-      console.error(
-        // added for not to lose order data if mail sending fails
-        'Mailtrap warning: Email failed to send, but order was saved.',
-        error.message,
-      );
+    } catch {
+      this.logger.warn('Order email delivery failed after the order was saved');
     }
     return toOrderResponse(savedOrder);
   }
