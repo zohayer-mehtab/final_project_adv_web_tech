@@ -1,20 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsController } from './products.controller';
-import { ProductsService } from './products.service';
 
 describe('ProductsController', () => {
-  let controller: ProductsController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ProductsController],
-      providers: [ProductsService],
-    }).compile();
-
-    controller = module.get<ProductsController>(ProductsController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('binds product creation to the authenticated vendor', async () => {
+    const products = { create: jest.fn().mockResolvedValue({ id: 2 }) };
+    const controller = new ProductsController(products as any);
+    const dto = {
+      name: 'Item',
+      description: 'Description',
+      price: 10,
+      stock: 4,
+    };
+    await expect(
+      controller.create(dto, { user: { userId: 7 } }),
+    ).resolves.toEqual({ id: 2 });
+    expect(products.create).toHaveBeenCalledWith(dto, 7);
   });
 });

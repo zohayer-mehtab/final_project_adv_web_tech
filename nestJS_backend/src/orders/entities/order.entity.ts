@@ -4,8 +4,8 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  Relation,
 } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Product } from 'src/products/entities/product.entity';
 import { OrderStatus } from 'src/order-status.enum';

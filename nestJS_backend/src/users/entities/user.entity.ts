@@ -1,10 +1,5 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  OneToMany,
-  Relation,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Role } from '../../role.enum';
 import { Product } from '../../products/entities/product.entity';
 import { Order } from '../../orders/entities/order.entity';
@@ -32,11 +27,11 @@ export class User {
   @Column({ nullable: true })
   companyName?: string;
 
-  @Column({ nullable: true })
-  resetToken: string;
+  @Column({ type: 'varchar', nullable: true })
+  resetToken: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
-  resetTokenExpires: Date;
+  resetTokenExpires: Date | null;
 
   @OneToMany(() => Product, (product) => product.vendor)
   products: Relation<Product[]>;

@@ -12,11 +12,14 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { use } from 'passport';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { EndpointRateLimitGuard } from './endpoint-rate-limit.guard';
+import type { AuthenticatedRequest } from '../common/authenticated-request';
 
 @Controller('auth')
 export class AuthController {
@@ -26,11 +29,12 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async register(@Body() registerDto: RegisterDto) {
+    return this.usersService.register(registerDto);
   }
   @HttpCode(HttpStatus.OK)
   @Post('login')
+  @UseGuards(EndpointRateLimitGuard)
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(
       loginDto.email,
@@ -45,26 +49,30 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getUserProfile(@Request() req) {
+  async getUserProfile(@Request() req: AuthenticatedRequest) {
     return await this.authService.getUserProfile(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
-  async updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+  async updateProfile(
+    @Request() req: AuthenticatedRequest,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
     return await this.usersService.update(req.user.userId, updateUserDto);
   }
 
   @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(EndpointRateLimitGuard)
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.forgotPassword(body.email);
   }
 
   @Post('reset-password')
-  async resetPassword(
-    @Body('token') token: string,
-    @Body('newPassword') newPassword: string,
-  ) {
-    return this.authService.resetPassword(token, newPassword);
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(EndpointRateLimitGuard)
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(body.token, body.newPassword);
   }
 }

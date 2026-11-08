@@ -5,12 +5,11 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from 'src/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -21,6 +20,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -32,14 +33,13 @@ export class UsersController {
   //   return this.usersService.findAll();
   // }
 
-
-  //added after getting errors! 
+  //added after getting errors!
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('admin/users')
   findAllUsers() {
     // Make sure your UsersService has a findAll() method!
-    return this.usersService.findAll(); 
+    return this.usersService.findAll();
   }
 
   // @Get(':id')
@@ -60,14 +60,14 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch('admin/users/:id/approve')
-  approveVendor(@Param('id') id: string) {
-    return this.usersService.approveUser(+id);
+  approveVendor(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.approveUser(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch('admin/users/:id/reject')
-  rejectVendor(@Param('id') id: string) {
-    return this.usersService.rejectUser(+id);
+  rejectVendor(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.rejectUser(id);
   }
 }

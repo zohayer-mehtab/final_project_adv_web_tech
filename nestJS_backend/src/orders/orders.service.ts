@@ -3,9 +3,9 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { DeepPartial, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,9 +13,12 @@ import { Product } from 'src/products/entities/product.entity';
 import { User } from 'src/users/entities/user.entity';
 import { MailService } from 'src/mail/mail.service';
 import { OrderStatus } from 'src/order-status.enum';
+import { toOrderResponse } from './dto/order-response.dto';
+import { OrderResponseDto } from './dto/order-response.dto';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
   constructor(
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
@@ -29,41 +32,43 @@ export class OrdersService {
   async create(
     createOrderDto: CreateOrderDto,
     buyerId: number,
-  ): Promise<Order> {
-    const product = await this.productsRepository.findOne({
-      where: { id: createOrderDto.productId, isApproved: true },
-      relations: { vendor: true },
-    });
+  ): Promise<OrderResponseDto> {
+    const { product, buyer, savedOrder } =
+      await this.ordersRepository.manager.transaction(async (manager) => {
+        const product = await manager.getRepository(Product).findOne({
+          where: { id: createOrderDto.productId, isApproved: true },
+          relations: { vendor: true },
+        });
+        if (!product)
+          throw new NotFoundException('Product not found or not available');
+        const buyer = await manager
+          .getRepository(User)
+          .findOne({ where: { id: buyerId } });
+        if (!buyer) throw new NotFoundException('Buyer not found');
 
-    const buyer = await this.usersRepository.findOne({
-      where: { id: buyerId },
-    });
+        const stockUpdate = await manager
+          .getRepository(Product)
+          .createQueryBuilder()
+          .update(Product)
+          .set({ stock: () => '"stock" - :quantity' })
+          .where('"id" = :id', { id: product.id })
+          .andWhere('"isApproved" = true')
+          .andWhere('"stock" >= :quantity', {
+            quantity: createOrderDto.quantity,
+          })
+          .execute();
+        if (stockUpdate.affected !== 1)
+          throw new BadRequestException('Insufficient stock available');
 
-    if (!product) {
-      throw new NotFoundException('Product not found or not available');
-    }
-
-    if (product.stock < createOrderDto.quantity) {
-      throw new BadRequestException(
-        `Insufficient stock available, Only ${product.stock} left`,
-      );
-    }
-
-    //product.stock -= createOrderDto.quantity;
-    //await this.productsRepository.save(product); //bad code
-    await this.productsRepository.decrement(
-      { id: product.id },
-      'stock',
-      createOrderDto.quantity,
-    ); //This code is better because does the operation sequentially.
-
-    const newOrder = this.ordersRepository.create({
-      product: { id: createOrderDto.productId } as DeepPartial<Product>,
-      buyer: { id: buyerId } as DeepPartial<User>,
-      quantity: createOrderDto.quantity,
-    });
-
-    const savedOrder = await this.ordersRepository.save(newOrder);
+        const savedOrder = await manager.getRepository(Order).save(
+          manager.getRepository(Order).create({
+            product: { id: product.id } as DeepPartial<Product>,
+            buyer: { id: buyerId } as DeepPartial<User>,
+            quantity: createOrderDto.quantity,
+          }),
+        );
+        return { product, buyer, savedOrder };
+      });
 
     const totalPrice = product.price * savedOrder.quantity;
 
@@ -74,8 +79,6 @@ export class OrdersService {
         buyerEmail: buyer.email,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-
       await this.mailService.sendOrderConfirmationEmail(buyer.email, {
         orderId: savedOrder.id,
         productName: product.name,
@@ -83,30 +86,28 @@ export class OrdersService {
         totalPrice: totalPrice,
         date: new Date().toLocaleDateString(),
       });
-    } catch (error) {
-      console.error(
-        // added for not to lose order data if mail sending fails
-        'Mailtrap warning: Email failed to send, but order was saved.',
-        error.message,
-      );
+    } catch {
+      this.logger.warn('Order email delivery failed after the order was saved');
     }
-    return savedOrder;
+    return toOrderResponse(savedOrder);
   }
 
-  async findAllForBuyer(buyerId: number): Promise<Order[]> {
-    return await this.ordersRepository.find({
+  async findAllForBuyer(buyerId: number): Promise<OrderResponseDto[]> {
+    const orders = await this.ordersRepository.find({
       where: { buyer: { id: buyerId } },
       relations: { product: true },
       order: { orderedAt: 'DESC' },
     });
+    return orders.map(toOrderResponse);
   }
 
-  async findAllForVendor(vendorId: number): Promise<Order[]> { //Not in the proposal but needs to be added for vendors to see their orders.
-    return await this.ordersRepository.find({
+  async findAllForVendor(vendorId: number): Promise<OrderResponseDto[]> {
+    const orders = await this.ordersRepository.find({
       where: { product: { vendor: { id: vendorId } } },
       relations: { buyer: true, product: true },
       order: { orderedAt: 'DESC' },
     });
+    return orders.map(toOrderResponse);
   }
 
   async remove(orderId: string, buyerId: number): Promise<void> {
@@ -141,9 +142,9 @@ export class OrdersService {
 
   async updateOrderStatus(
     orderId: string,
-    status: string,
+    status: OrderStatus,
     vendorId: number,
-  ): Promise<Order> {
+  ): Promise<OrderResponseDto> {
     // 1. Fetch the order AND deep-load the product & vendor relations
     const order = await this.ordersRepository.findOne({
       where: { id: orderId },
@@ -165,6 +166,6 @@ export class OrdersService {
     }
 
     order.status = status;
-    return await this.ordersRepository.save(order);
+    return toOrderResponse(await this.ordersRepository.save(order));
   }
 }

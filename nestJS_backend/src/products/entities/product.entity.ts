@@ -1,11 +1,6 @@
 import { User } from '../../users/entities/user.entity';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  Relation,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import type { Relation } from 'typeorm';
 
 @Entity('products')
 export class Product {

@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -10,19 +10,19 @@ export default function ForgotPasswordPage() {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         try {
             await axios.post("http://localhost:3000/auth/forgot-password", { email });
             
-            setSuccessMessage("A 6-digit reset code has been sent to your email!");
+            setSuccessMessage("If you have an account, check your email for reset instructions.");
             setError("");
             
             setTimeout(() => router.push("/reset-password"), 2000);
             
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
+            if (axios.isAxiosError(error) && error.response?.data?.message) {
                 setError(error.response.data.message);
             } else {
                 setError("Failed to send reset email.");
