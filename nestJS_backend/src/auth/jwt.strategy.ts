@@ -1,7 +1,9 @@
 import {ExtractJwt, Strategy} from 'passport-jwt';
 import {PassportStrategy} from '@nestjs/passport';
-import {Injectable} from '@nestjs/common';
+import {Injectable, UnauthorizedException} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
+import { UsersService } from '../users/users.service';
+import { Role } from '../role.enum';
 
 
 export type JwtPayload = { //Written for type safety, to ensure that the payload contains the expected properties when validating the JWT token.
@@ -12,7 +14,7 @@ export type JwtPayload = { //Written for type safety, to ensure that the payload
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor(configService: ConfigService) {
+    constructor(configService: ConfigService, private readonly usersService: UsersService) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
@@ -21,6 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: JwtPayload) {
-        return { userId: payload.sub, email: payload.email, role: payload.role };
+        const user = await this.usersService.findAuthUserById(payload.sub);
+        if (!user || (user.role === Role.VENDOR && !user.isApproved)) {
+            throw new UnauthorizedException();
+        }
+        return { userId: user.id, email: user.email, role: user.role };
     }
 }

@@ -33,10 +33,10 @@ export class User {
   companyName?: string;
 
   @Column({ nullable: true })
-  resetToken: string;
+  resetToken: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
-  resetTokenExpires: Date;
+  resetTokenExpires: Date | null;
 
   @OneToMany(() => Product, (product) => product.vendor)
   products: Relation<Product[]>;
